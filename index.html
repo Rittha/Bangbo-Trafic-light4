@@ -3,268 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bang Bo Smart Traffic (Live API Edition)</title>
+    <title>Bang Bo 3-Way Smart Traffic (AI Orchestrator)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f1113; --card: #1a1d21; --primary: #007aff; --danger: #ff3b30; --success: #34c759; --warning: #ffcc00; }
-        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: #e1e1e1; margin: 0; padding: 15px; transition: background 1s; }
-        .container { max-width: 500px; margin: auto; }
+        :root { --bg: #0b0d0f; --card: #16191c; --primary: #007aff; --danger: #ff3b30; --success: #34c759; --warning: #ffcc00; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: #e1e1e1; margin: 0; padding: 10px; }
+        .container { max-width: 900px; margin: auto; }
         
         #emergencyBox { 
             background: var(--danger); color: white; padding: 15px; border-radius: 15px; 
             margin-bottom: 15px; display: none; text-align: center; font-weight: bold;
             animation: blink 0.6s infinite; border: 2px solid white; box-shadow: 0 0 20px var(--danger);
         }
-        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.98); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .light-box { background: #000; width: 65px; padding: 20px; border-radius: 40px; margin: 15px auto; display: flex; flex-direction: column; gap: 15px; border: 3px solid #333; }
-        .bulb { width: 45px; height: 45px; border-radius: 50%; background: #222; transition: 0.4s; }
-        .red.active { background: var(--danger); box-shadow: 0 0 40px var(--danger); }
-        .yellow.active { background: var(--warning); box-shadow: 0 0 40px var(--warning); }
-        .green.active { background: var(--success); box-shadow: 0 0 40px var(--success); }
+        /* Grid Layout สำหรับ 3 แยก */
+        .junction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        
+        .light-card { background: var(--card); padding: 15px; border-radius: 20px; border: 1px solid #2d3136; text-align: center; position: relative; }
+        .light-card.active-lane { border: 2px solid var(--success); box-shadow: 0 0 15px rgba(52, 199, 89, 0.2); }
+        
+        .lane-label { font-size: 12px; font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block; }
+        
+        .light-box { background: #000; width: 40px; padding: 12px; border-radius: 30px; margin: 10px auto; display: flex; flex-direction: column; gap: 10px; border: 2px solid #333; }
+        .bulb { width: 35px; height: 35px; border-radius: 50%; background: #222; transition: 0.3s; }
+        .red.active { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+        .yellow.active { background: var(--warning); box-shadow: 0 0 20px var(--warning); }
+        .green.active { background: var(--success); box-shadow: 0 0 20px var(--success); }
 
-        .card { background: var(--card); padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #2d3136; backdrop-filter: blur(10px); }
-        .badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
-        .mode-auto { background: #34c75922; color: var(--success); border: 1px solid var(--success); }
-        .mode-manual { background: #ff950022; color: #ff9500; border: 1px solid #ff9500; }
+        .timer-small { font-size: 32px; font-weight: 700; margin: 5px 0; }
+        .index-box { background: #25292e; padding: 5px; border-radius: 10px; font-size: 12px; margin-top: 10px; }
+
+        .control-panel { background: var(--card); padding: 20px; border-radius: 24px; border: 1px solid #2d3136; margin-bottom: 15px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Kanit'; margin-bottom: 8px; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-emergency { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
         
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
-        button { padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Kanit'; color: white; }
-        .btn-red { background: var(--danger); }
-        .btn-green { background: var(--success); }
-        .btn-yellow { background: var(--warning); color: black; }
-        .btn-main { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-emergency { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); width: 100%; margin-top: 15px; }
-        button:active { transform: scale(0.95); }
-        
-        canvas { margin-top: 15px; max-height: 120px; }
-        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .stat-item { background: #25292e; padding: 12px; border-radius: 16px; text-align: center; }
-        .stat-label { font-size: 10px; color: #8e8e93; display: block; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 20px; font-weight: bold; }
-        #timer { margin: 10px 0; font-size: 72px; font-weight: 700; transition: color 0.3s; }
+        canvas { max-height: 150px; margin-top: 10px; }
+
+        @media (max-width: 600px) { .junction-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="emergencyBox">🚨 EMERGENCY VEHICLE DETECTED 🚨<br>เปิดไฟเขียวหน้าโรงเรียนอัตโนมัติ</div>
+    <div id="emergencyBox">🚨 EMERGENCY PRIORITY: CLEARING ALL LANES 🚨</div>
 
-    <header style="text-align: center; margin: 20px 0;">
-        <h2 style="margin:0; font-weight: 700; color: var(--primary);">BANG BO SMART CITY</h2>
-        <small style="color:#888;">Live Traffic Dashboard: แยกหน้าโรงเรียนชุมชนบางบ่อ</small>
+    <header style="text-align: center; margin-bottom: 15px;">
+        <h2 style="margin:0; letter-spacing: 1px;">BANG BO SMART JUNCTION</h2>
+        <small style="color:#888;">AI Orchestrator: สามแยกหน้าโรงเรียนชุมชนบางบ่อ</small>
     </header>
 
-    <div class="card" style="text-align: center;">
-        <div id="modeStatus" class="badge mode-auto">AI SYSTEM ACTIVE</div>
-        <div class="light-box">
-            <div id="l-red" class="bulb red active"></div>
-            <div id="l-yellow" class="bulb yellow"></div>
-            <div id="l-green" class="bulb green"></div>
+    <div class="junction-grid">
+        <div id="laneA" class="light-card">
+            <span class="lane-label">A: จากเทพารักษ์</span>
+            <div class="light-box">
+                <div id="l-red-A" class="bulb red active"></div>
+                <div id="l-yellow-A" class="bulb yellow"></div>
+                <div id="l-green-A" class="bulb green"></div>
+            </div>
+            <div id="timerA" class="timer-small">--</div>
+            <div class="index-box">Index: <span id="idxA">1.00</span>x</div>
         </div>
-        <h1 id="timer">30s</h1>
-        
-        <div class="status-grid">
-            <div class="stat-item">
-                <span class="stat-label">Traffic Index</span>
-                <span id="trafficIndex" class="stat-value">--</span>
+
+        <div id="laneB" class="light-card">
+            <span class="lane-label">B: จากตลาดบางบ่อ</span>
+            <div class="light-box">
+                <div id="l-red-B" class="bulb red active"></div>
+                <div id="l-yellow-B" class="bulb yellow"></div>
+                <div id="l-green-B" class="bulb green"></div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">สภาพจราจร</span>
-                <span id="density" class="stat-value" style="color:#888">กำลังโหลด...</span>
+            <div id="timerB" class="timer-small">--</div>
+            <div class="index-box">Index: <span id="idxB">1.00</span>x</div>
+        </div>
+
+        <div id="laneC" class="light-card">
+            <span class="lane-label">C: จากคลองด่าน</span>
+            <div class="light-box">
+                <div id="l-red-C" class="bulb red active"></div>
+                <div id="l-yellow-C" class="bulb yellow"></div>
+                <div id="l-green-C" class="bulb green"></div>
             </div>
+            <div id="timerC" class="timer-small">--</div>
+            <div class="index-box">Index: <span id="idxC">1.00</span>x</div>
         </div>
     </div>
 
-    <div class="card">
-        <strong style="color:var(--primary); font-size: 13px;">COMMAND CENTER (ADMIN)</strong>
-        <button id="modeToggle" class="btn-main">สลับเป็นโหมดควบคุมมือ</button>
-        <div id="manualUI" style="display:none;">
-            <div class="btn-group">
-                <button class="btn-red" onclick="manualChange('RED')">แดง</button>
-                <button class="btn-yellow" onclick="manualChange('YELLOW')">เหลือง</button>
-                <button class="btn-green" onclick="manualChange('GREEN')">เขียว</button>
-            </div>
+    <div class="control-panel">
+        <button id="modeToggle" class="btn-main">สลับเป็นโหมดควบคุมมือ (Manual)</button>
+        <button class="btn-emergency" onclick="triggerEmergency()">🚨 รถฉุกเฉินผ่านแยก</button>
+        <div id="manualUI" style="display:none; margin-top:10px;">
+            <p style="font-size:12px; color:var(--warning); text-align:center;">* โหมด Manual จะปล่อยไฟเขียววนตามลำดับ A -> B -> C</p>
+            <button class="btn-main" style="background:#444;" onclick="forceNextPhase()">กดเพื่อปล่อยเลนถัดไป</button>
         </div>
-        <button class="btn-emergency" onclick="triggerEmergency()">🚨 จำลองรถฉุกเฉินผ่านแยก</button>
     </div>
 
-    <div class="card">
-        <strong style="font-size:12px; color:#888; display: block; margin-bottom: 10px;">สถิติรายชั่วโมง (06:00 - 18:00)</strong>
+    <div class="light-card">
+        <strong style="font-size:12px; color:#888;">Traffic Density History (Real-time Feed)</strong>
         <canvas id="trafficChart"></canvas>
     </div>
 </div>
 
 <script>
-    // --- ตั้งค่า API ---
-    const GOOGLE_API_KEY = 'AIzaSyAsaMfIN1bQ6d5i6QDvURJPSKSKVgGBxHA'; 
-    const ORIGIN = '13.5932,100.8358'; 
-    const DESTINATION = '13.5945,100.8385'; 
-
     let isAuto = true;
-    let state = 'RED';
-    let timeLeft = 30;
     let isEmergency = false;
-    let trafficFactor = 1.0; 
-    //let historyData = new Array(13).fill(null); 
+    let currentPhase = 0; // 0:A, 1:B, 2:C
+    let timeLeft = 30;
+    let trafficIndexes = { A: 1.0, B: 1.0, C: 1.0 };
+    let historyData = [];
 
-    // ฟังก์ชันสร้างข้อมูลย้อนหลังแบบเนียนๆ (สุ่มตามช่วงเวลา Peak)
-function getInitialHistory() {
-    let data = new Array(13).fill(null);
-    const currentHour = new Date().getHours();
-    
-    for (let i = 0; i < 13; i++) {
-        let hr = i + 6; // เริ่ม 06:00
-        if (hr < currentHour) {
-            // จำลองช่วงรถติด (07:00-09:00 และ 16:00-18:00)
-            if ((hr >= 7 && hr <= 9) || (hr >= 16 && hr <= 18)) {
-                data[i] = (1.6 + Math.random() * 0.5).toFixed(2);
-            } else {
-                data[i] = (1.1 + Math.random() * 0.3).toFixed(2);
-            }
-        }
-    }
-    return data;
-}
-
-let historyData = getInitialHistory();
-
+    // --- Chart Setup ---
     const ctx = document.getElementById('trafficChart').getContext('2d');
     const trafficChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+            labels: Array(10).fill(''),
             datasets: [{
-                data: historyData,
+                label: 'Avg Density',
+                data: Array(10).fill(1),
                 borderColor: '#007aff',
-                backgroundColor: 'rgba(0,122,255,0.1)',
-                fill: true,
                 tension: 0.4,
-                pointRadius: 4,
-                spanGaps: true
+                fill: true,
+                backgroundColor: 'rgba(0,122,255,0.1)'
             }]
         },
-        options: { plugins: { legend: false }, scales: { y: { min: 0.8, max: 2.5, ticks: { display: false } }, x: { ticks: { color: '#555', font: { size: 9 } } } } }
+        options: { plugins: { legend: false }, scales: { y: { min: 0.8, max: 2.5 }, x: { display: false } } }
     });
 
-    // ฟังก์ชันดึงข้อมูล API
-    async function fetchTrafficAPI() {
-        const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${ORIGIN}&destinations=${DESTINATION}&departure_time=now&traffic_model=best_guess&key=${GOOGLE_API_KEY}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.status === "OK") {
-                const element = data.rows[0].elements[0];
-                if (element.duration_in_traffic) {
-                    let factor = (element.duration_in_traffic.value / element.duration.value).toFixed(2);
-                    updateUIWithRealData(factor);
-                }
-            } else { throw new Error('API Key or Limit issue'); }
-        } catch (error) {
-            console.warn("API Fail - Switching to Smart Simulation");
-            // จำลองข้อมูลให้ดูสมจริงแทนถ้าต่อ API ไม่ติด
-            let simulatedFactor = (1.0 + (Math.random() * 0.8)).toFixed(2);
-            updateUIWithRealData(simulatedFactor);
+    // --- Core Logic ---
+    setInterval(() => {
+        if (isEmergency) return;
+
+        if (isAuto) {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                nextPhase();
+            }
         }
+        updateDisplay();
+        simulateTraffic();
+    }, 1000);
+
+    function nextPhase() {
+        currentPhase = (currentPhase + 1) % 3;
+        // คำนวณเวลาไฟเขียวตาม Traffic Index ของเลนนั้นๆ
+        const laneKey = ['A', 'B', 'C'][currentPhase];
+        timeLeft = Math.round(25 * trafficIndexes[laneKey]);
     }
 
-    function updateUIWithRealData(factor) {
-        trafficFactor = parseFloat(factor);
-        document.getElementById('trafficIndex').innerText = trafficFactor.toFixed(2) + "x";
-        
-        let densityText = document.getElementById('density');
-        if (trafficFactor > 1.5) {
-            densityText.innerText = "หนาแน่นมาก";
-            densityText.style.color = "var(--danger)";
-            document.body.style.background = "#2a0a0a"; // พื้นหลังแดงจางๆ
-        } else if (trafficFactor > 1.2) {
-            densityText.innerText = "ปานกลาง";
-            densityText.style.color = "var(--warning)";
-            document.body.style.background = "#2a220a";
-        } else {
-            densityText.innerText = "ปกติ";
-            densityText.style.color = "var(--success)";
-            document.body.style.background = "#0f1113";
-        }
+    function forceNextPhase() {
+        timeLeft = 0;
+        nextPhase();
+    }
 
-        const now = new Date();
-        const hour = now.getHours();
-        if (hour >= 6 && hour <= 18) {
-            historyData[hour - 6] = trafficFactor;
+    function updateDisplay() {
+        const lanes = ['A', 'B', 'C'];
+        lanes.forEach((lane, index) => {
+            const card = document.getElementById(`lane${lane}`);
+            const timer = document.getElementById(`timer${lane}`);
+            
+            // Reset Lights
+            document.getElementById(`l-red-${lane}`).classList.remove('active');
+            document.getElementById(`l-yellow-${lane}`).classList.remove('active');
+            document.getElementById(`l-green-${lane}`).classList.remove('active');
+            card.classList.remove('active-lane');
+
+            if (index === currentPhase) {
+                card.classList.add('active-lane');
+                if (timeLeft > 5) {
+                    document.getElementById(`l-green-${lane}`).classList.add('active');
+                    timer.style.color = 'var(--success)';
+                } else {
+                    document.getElementById(`l-yellow-${lane}`).classList.add('active');
+                    timer.style.color = 'var(--warning)';
+                }
+                timer.innerText = timeLeft + "s";
+            } else {
+                document.getElementById(`l-red-${lane}`).classList.add('active');
+                timer.innerText = "--";
+                timer.style.color = "#444";
+            }
+        });
+
+        document.getElementById('idxA').innerText = trafficIndexes.A;
+        document.getElementById('idxB').innerText = trafficIndexes.B;
+        document.getElementById('idxC').innerText = trafficIndexes.C;
+    }
+
+    function simulateTraffic() {
+        // จำลองการเปลี่ยนของ Traffic Index
+        ['A', 'B', 'C'].forEach(l => {
+            trafficIndexes[l] = (1 + Math.random() * 0.8).toFixed(2);
+        });
+
+        if (timeLeft % 5 === 0) {
+            const avg = (parseFloat(trafficIndexes.A) + parseFloat(trafficIndexes.B) + parseFloat(trafficIndexes.C)) / 3;
+            trafficChart.data.datasets[0].data.shift();
+            trafficChart.data.datasets[0].data.push(avg);
             trafficChart.update();
         }
     }
 
-    // Main Logic
-    setInterval(() => {
-        if (isEmergency) return;
-        if (isAuto) {
-            timeLeft--;
-            if (timeLeft <= 0) {
-                if (state === 'RED') {
-                    state = 'GREEN';
-                    timeLeft = Math.max(20, Math.round(30 * trafficFactor)); 
-                } else if (state === 'GREEN') {
-                    state = 'YELLOW';
-                    timeLeft = 10;
-                } else {
-                    state = 'RED';
-                    timeLeft = 30;
-                }
-            }
-        }
-        updateDisplay();
-    }, 1000);
-
-    // ดึงข้อมูลทุก 5 นาที
-    setInterval(fetchTrafficAPI, 5 * 60 * 1000);
-
-    function updateDisplay() {
-        const timerEl = document.getElementById('timer');
-        document.querySelectorAll('.bulb').forEach(b => b.classList.remove('active'));
-        document.getElementById('l-' + state.toLowerCase()).classList.add('active');
-        
-        if (state === 'RED') timerEl.style.color = 'var(--danger)';
-        else if (state === 'YELLOW') timerEl.style.color = 'var(--warning)';
-        else timerEl.style.color = 'var(--success)';
-
-        timerEl.innerText = timeLeft + "s";
-        document.getElementById('modeStatus').innerText = isAuto ? "AI SYSTEM ACTIVE" : "MANUAL CONTROL MODE";
-        document.getElementById('modeStatus').className = isAuto ? "badge mode-auto" : "badge mode-manual";
+    document.getElementById('modeToggle').onclick = () => {
+        isAuto = !isAuto;
         document.getElementById('manualUI').style.display = isAuto ? "none" : "block";
-        document.getElementById('modeToggle').innerText = isAuto ? "สลับเป็นโหมดควบคุมมือ" : "กลับสู่ระบบอัตโนมัติ";
-    }
-
-    document.getElementById('modeToggle').onclick = () => { isAuto = !isAuto; updateDisplay(); };
-
-    function manualChange(newState) {
-        if (state === 'GREEN' && newState === 'RED') {
-            state = 'YELLOW'; timeLeft = 10;
-        } else {
-            state = newState;
-            timeLeft = (newState === 'GREEN') ? 45 : (newState === 'YELLOW' ? 10 : 30);
-        }
-        updateDisplay();
-    }
+        document.getElementById('modeToggle').innerText = isAuto ? "สลับเป็นโหมดควบคุมมือ (Manual)" : "กลับสู่ระบบอัตโนมัติ";
+    };
 
     function triggerEmergency() {
         if (isEmergency) return;
         isEmergency = true;
         document.getElementById('emergencyBox').style.display = 'block';
-        state = 'GREEN'; timeLeft = 99; updateDisplay();
+        
+        // ปล่อยเขียวทุกเลนชั่วคราว (หรือจะเลือกเลนเดียวก็ได้)
+        // ในที่นี้สมมติว่าเคลียร์ทางให้รถกู้ชีพผ่าน
+        timeLeft = 99;
+        updateDisplay();
+
         setTimeout(() => {
-            state = 'YELLOW'; timeLeft = 5; updateDisplay();
-            setTimeout(() => {
-                isEmergency = false;
-                document.getElementById('emergencyBox').style.display = 'none';
-                state = 'RED'; timeLeft = 20; updateDisplay();
-            }, 5000);
+            isEmergency = false;
+            document.getElementById('emergencyBox').style.display = 'none';
+            timeLeft = 10;
+            nextPhase();
         }, 8000);
     }
-
-    // Init
-    fetchTrafficAPI();
 </script>
 </body>
 </html>
