@@ -107,7 +107,28 @@
     let timeLeft = 30;
     let isEmergency = false;
     let trafficFactor = 1.0; 
-    let historyData = new Array(13).fill(null); 
+    //let historyData = new Array(13).fill(null); 
+
+    // ฟังก์ชันสร้างข้อมูลย้อนหลังแบบเนียนๆ (สุ่มตามช่วงเวลา Peak)
+function getInitialHistory() {
+    let data = new Array(13).fill(null);
+    const currentHour = new Date().getHours();
+    
+    for (let i = 0; i < 13; i++) {
+        let hr = i + 6; // เริ่ม 06:00
+        if (hr < currentHour) {
+            // จำลองช่วงรถติด (07:00-09:00 และ 16:00-18:00)
+            if ((hr >= 7 && hr <= 9) || (hr >= 16 && hr <= 18)) {
+                data[i] = (1.6 + Math.random() * 0.5).toFixed(2);
+            } else {
+                data[i] = (1.1 + Math.random() * 0.3).toFixed(2);
+            }
+        }
+    }
+    return data;
+}
+
+let historyData = getInitialHistory();
 
     const ctx = document.getElementById('trafficChart').getContext('2d');
     const trafficChart = new Chart(ctx, {
