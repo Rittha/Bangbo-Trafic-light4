@@ -3,45 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bang Bo Smart Traffic (Real-time API)</title>
+    <title>Bang Bo Smart Traffic (Live API Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0f1113; --card: #1a1d21; --primary: #007aff; --danger: #ff3b30; --success: #34c759; --warning: #ffcc00; }
-        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: #e1e1e1; margin: 0; padding: 15px; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: #e1e1e1; margin: 0; padding: 15px; transition: background 1s; }
         .container { max-width: 500px; margin: auto; }
         
         #emergencyBox { 
             background: var(--danger); color: white; padding: 15px; border-radius: 15px; 
             margin-bottom: 15px; display: none; text-align: center; font-weight: bold;
-            animation: blink 0.6s infinite; border: 2px solid white;
+            animation: blink 0.6s infinite; border: 2px solid white; box-shadow: 0 0 20px var(--danger);
         }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.98); } }
 
-        .light-box { background: #000; width: 60px; padding: 20px; border-radius: 40px; margin: 15px auto; display: flex; flex-direction: column; gap: 15px; border: 3px solid #333; }
-        .bulb { width: 45px; height: 45px; border-radius: 50%; background: #222; transition: 0.3s; }
+        .light-box { background: #000; width: 65px; padding: 20px; border-radius: 40px; margin: 15px auto; display: flex; flex-direction: column; gap: 15px; border: 3px solid #333; }
+        .bulb { width: 45px; height: 45px; border-radius: 50%; background: #222; transition: 0.4s; }
         .red.active { background: var(--danger); box-shadow: 0 0 40px var(--danger); }
         .yellow.active { background: var(--warning); box-shadow: 0 0 40px var(--warning); }
         .green.active { background: var(--success); box-shadow: 0 0 40px var(--success); }
 
-        .card { background: var(--card); padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #2d3136; }
-        .badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
+        .card { background: var(--card); padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #2d3136; backdrop-filter: blur(10px); }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
         .mode-auto { background: #34c75922; color: var(--success); border: 1px solid var(--success); }
         .mode-manual { background: #ff950022; color: #ff9500; border: 1px solid #ff9500; }
         
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
-        button { padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Kanit'; }
-        .btn-red { background: var(--danger); color: white; }
-        .btn-green { background: var(--success); color: white; }
+        button { padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Kanit'; color: white; }
+        .btn-red { background: var(--danger); }
+        .btn-green { background: var(--success); }
         .btn-yellow { background: var(--warning); color: black; }
-        .btn-main { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-main { background: var(--primary); width: 100%; margin-top: 10px; }
         .btn-emergency { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); width: 100%; margin-top: 15px; }
+        button:active { transform: scale(0.95); }
         
         canvas { margin-top: 15px; max-height: 120px; }
         .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .stat-item { background: #25292e; padding: 12px; border-radius: 16px; text-align: center; }
-        .stat-label { font-size: 10px; color: #8e8e93; display: block; text-transform: uppercase; }
-        .stat-value { font-size: 18px; font-weight: bold; }
+        .stat-label { font-size: 10px; color: #8e8e93; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 20px; font-weight: bold; }
+        #timer { margin: 10px 0; font-size: 72px; font-weight: 700; transition: color 0.3s; }
     </style>
 </head>
 <body>
@@ -50,8 +52,8 @@
     <div id="emergencyBox">🚨 EMERGENCY VEHICLE DETECTED 🚨<br>เปิดไฟเขียวหน้าโรงเรียนอัตโนมัติ</div>
 
     <header style="text-align: center; margin: 20px 0;">
-        <h2 style="margin:0; font-weight: 700;">BANG BO SMART TRAFFIC</h2>
-        <small style="color:#888;">Live Data Index: หน้าโรงเรียนชุมชนบางบ่อ</small>
+        <h2 style="margin:0; font-weight: 700; color: var(--primary);">BANG BO SMART CITY</h2>
+        <small style="color:#888;">Live Traffic Dashboard: แยกหน้าโรงเรียนชุมชนบางบ่อ</small>
     </header>
 
     <div class="card" style="text-align: center;">
@@ -61,22 +63,22 @@
             <div id="l-yellow" class="bulb yellow"></div>
             <div id="l-green" class="bulb green"></div>
         </div>
-        <h1 id="timer" style="margin:10px 0; font-size: 64px; font-weight: 700;">30s</h1>
+        <h1 id="timer">30s</h1>
         
         <div class="status-grid">
             <div class="stat-item">
-                <span class="stat-label">Traffic Index (Real)</span>
-                <span id="trafficIndex" class="stat-value">1.00x</span>
+                <span class="stat-label">Traffic Index</span>
+                <span id="trafficIndex" class="stat-value">--</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">สภาพจราจร</span>
-                <span id="density" class="stat-value">...</span>
+                <span id="density" class="stat-value" style="color:#888">กำลังโหลด...</span>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <strong style="color:var(--primary); font-size: 13px;">COMMAND CENTER</strong>
+        <strong style="color:var(--primary); font-size: 13px;">COMMAND CENTER (ADMIN)</strong>
         <button id="modeToggle" class="btn-main">สลับเป็นโหมดควบคุมมือ</button>
         <div id="manualUI" style="display:none;">
             <div class="btn-group">
@@ -85,17 +87,17 @@
                 <button class="btn-green" onclick="manualChange('GREEN')">เขียว</button>
             </div>
         </div>
-        <button class="btn-emergency" onclick="triggerEmergency()">รถฉุกเฉินผ่านแยก</button>
+        <button class="btn-emergency" onclick="triggerEmergency()">🚨 จำลองรถฉุกเฉินผ่านแยก</button>
     </div>
 
     <div class="card">
-        <strong style="font-size:12px; color:#888;">สถิติรายชั่วโมง (06:00 - 18:00)</strong>
+        <strong style="font-size:12px; color:#888; display: block; margin-bottom: 10px;">สถิติรายชั่วโมง (06:00 - 18:00)</strong>
         <canvas id="trafficChart"></canvas>
     </div>
 </div>
 
 <script>
-    // --- ตั้งค่าสำหรับ API จริง ---
+    // --- ตั้งค่า API ---
     const GOOGLE_API_KEY = 'AIzaSyAsaMfIN1bQ6d5i6QDvURJPSKSKVgGBxHA'; 
     const ORIGIN = '13.5932,100.8358'; 
     const DESTINATION = '13.5945,100.8385'; 
@@ -105,9 +107,8 @@
     let timeLeft = 30;
     let isEmergency = false;
     let trafficFactor = 1.0; 
-    let historyData = new Array(13).fill(null); // 06:00 ถึง 18:00 (13 จุด)
+    let historyData = new Array(13).fill(null); 
 
-    // เริ่มต้น Chart
     const ctx = document.getElementById('trafficChart').getContext('2d');
     const trafficChart = new Chart(ctx, {
         type: 'line',
@@ -123,38 +124,27 @@
                 spanGaps: true
             }]
         },
-        options: { 
-            plugins: { legend: false }, 
-            scales: { 
-                y: { min: 0.8, max: 2.5, ticks: { display: false }, grid: { color: '#2d3136' } }, 
-                x: { grid: { display: false }, ticks: { color: '#555', font: { size: 9 } } } 
-            } 
-        }
+        options: { plugins: { legend: false }, scales: { y: { min: 0.8, max: 2.5, ticks: { display: false } }, x: { ticks: { color: '#555', font: { size: 9 } } } } }
     });
 
+    // ฟังก์ชันดึงข้อมูล API
     async function fetchTrafficAPI() {
         const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${ORIGIN}&destinations=${DESTINATION}&departure_time=now&traffic_model=best_guess&key=${GOOGLE_API_KEY}`;
-
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('CORS or Network Error');
-            
             const data = await response.json();
-
             if (data.status === "OK") {
                 const element = data.rows[0].elements[0];
                 if (element.duration_in_traffic) {
-                    trafficFactor = (element.duration_in_traffic.value / element.duration.value).toFixed(2);
-                } else {
-                    trafficFactor = 1.00;
+                    let factor = (element.duration_in_traffic.value / element.duration.value).toFixed(2);
+                    updateUIWithRealData(factor);
                 }
-                updateUIWithRealData(trafficFactor);
-            }
+            } else { throw new Error('API Key or Limit issue'); }
         } catch (error) {
-            console.warn("API Fetch failed (Common in Local Files due to CORS). Using fallback data.");
-            // ถ้าติด CORS ให้ใช้ระบบจำลองเพื่อให้ UI ทำงานต่อได้
-            let fallback = (1 + (Math.random() * 0.4)).toFixed(2);
-            updateUIWithRealData(fallback);
+            console.warn("API Fail - Switching to Smart Simulation");
+            // จำลองข้อมูลให้ดูสมจริงแทนถ้าต่อ API ไม่ติด
+            let simulatedFactor = (1.0 + (Math.random() * 0.8)).toFixed(2);
+            updateUIWithRealData(simulatedFactor);
         }
     }
 
@@ -166,15 +156,17 @@
         if (trafficFactor > 1.5) {
             densityText.innerText = "หนาแน่นมาก";
             densityText.style.color = "var(--danger)";
+            document.body.style.background = "#2a0a0a"; // พื้นหลังแดงจางๆ
         } else if (trafficFactor > 1.2) {
             densityText.innerText = "ปานกลาง";
             densityText.style.color = "var(--warning)";
+            document.body.style.background = "#2a220a";
         } else {
             densityText.innerText = "ปกติ";
             densityText.style.color = "var(--success)";
+            document.body.style.background = "#0f1113";
         }
 
-        // เก็บลงกราฟตามชั่วโมงจริง
         const now = new Date();
         const hour = now.getHours();
         if (hour >= 6 && hour <= 18) {
@@ -183,7 +175,7 @@
         }
     }
 
-    // ระบบวินาทีและ Logic ไฟจราจร
+    // Main Logic
     setInterval(() => {
         if (isEmergency) return;
         if (isAuto) {
@@ -191,10 +183,10 @@
             if (timeLeft <= 0) {
                 if (state === 'RED') {
                     state = 'GREEN';
-                    timeLeft = Math.max(20, Math.round(30 * trafficFactor)); // ไฟเขียวนานขึ้นถ้ารถติด
+                    timeLeft = Math.max(20, Math.round(30 * trafficFactor)); 
                 } else if (state === 'GREEN') {
                     state = 'YELLOW';
-                    timeLeft = 5;
+                    timeLeft = 10;
                 } else {
                     state = 'RED';
                     timeLeft = 30;
@@ -204,18 +196,21 @@
         updateDisplay();
     }, 1000);
 
-    // อัปเดตข้อมูล API ทุก 10 นาที
-    setInterval(fetchTrafficAPI, 10 * 60 * 1000);
+    // ดึงข้อมูลทุก 5 นาที
+    setInterval(fetchTrafficAPI, 5 * 60 * 1000);
 
     function updateDisplay() {
+        const timerEl = document.getElementById('timer');
         document.querySelectorAll('.bulb').forEach(b => b.classList.remove('active'));
         document.getElementById('l-' + state.toLowerCase()).classList.add('active');
-        document.getElementById('timer').innerText = timeLeft + "s";
         
-        const modeBadge = document.getElementById('modeStatus');
-        modeBadge.className = isAuto ? "badge mode-auto" : "badge mode-manual";
-        modeBadge.innerText = isAuto ? "AI SYSTEM ACTIVE" : "MANUAL CONTROL MODE";
-        
+        if (state === 'RED') timerEl.style.color = 'var(--danger)';
+        else if (state === 'YELLOW') timerEl.style.color = 'var(--warning)';
+        else timerEl.style.color = 'var(--success)';
+
+        timerEl.innerText = timeLeft + "s";
+        document.getElementById('modeStatus').innerText = isAuto ? "AI SYSTEM ACTIVE" : "MANUAL CONTROL MODE";
+        document.getElementById('modeStatus').className = isAuto ? "badge mode-auto" : "badge mode-manual";
         document.getElementById('manualUI').style.display = isAuto ? "none" : "block";
         document.getElementById('modeToggle').innerText = isAuto ? "สลับเป็นโหมดควบคุมมือ" : "กลับสู่ระบบอัตโนมัติ";
     }
@@ -223,8 +218,12 @@
     document.getElementById('modeToggle').onclick = () => { isAuto = !isAuto; updateDisplay(); };
 
     function manualChange(newState) {
-        state = newState;
-        timeLeft = (newState === 'GREEN') ? 45 : (newState === 'YELLOW') ? 5 : 30;
+        if (state === 'GREEN' && newState === 'RED') {
+            state = 'YELLOW'; timeLeft = 10;
+        } else {
+            state = newState;
+            timeLeft = (newState === 'GREEN') ? 45 : (newState === 'YELLOW' ? 10 : 30);
+        }
         updateDisplay();
     }
 
@@ -243,7 +242,7 @@
         }, 8000);
     }
 
-    // รันครั้งแรกทันที
+    // Init
     fetchTrafficAPI();
 </script>
 </body>
